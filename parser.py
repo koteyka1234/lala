@@ -10,7 +10,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 
 
-BASE_URL = 'https://www.avito.ru/sankt-peterburg/rabota'
+BASE_URL = 'https://www.avito.ru/moskva/kollektsionirovanie/monety'
 
 
 def get_html(url):
@@ -21,41 +21,38 @@ def get_html(url):
 def get_page_count(html):
     # 'html.parser' для совместмости с debian 8. без этого на debian не работает. на ubuntu нормально.
     soup = BeautifulSoup(html, 'html.parser')
-    paggination = soup.find('div', class_='pagination-pages clearfix')
+    pagination = soup.find('div', class_='pagination-pages clearfix')
     # основаная строка для парсинга количества страниц
-    return int(paggination.find_all('a', href=True)[-1]['href'][-3:])
+    return int(pagination.find_all('a', href=True)[-1]['href'][-3:])
 
 
 def parse(html):
     soup = BeautifulSoup(html, 'html.parser')
-    work_item = soup.find('div', class_='js-catalog_after-ads')
-    
+    #work_item = soup.find('body')
 
     
-    description = work_item.find_all('div', class_='description')
-
+    description = soup.find_all('div', class_='description')
+    #print(description)
     data = []
     for item in description:
 
         data.append({
             'title': item.a.text.strip(),
             'price': item.find('div', class_='about').text.strip()[:-5],
-            'type': item.find('div', class_='data').p.text.strip(),
         })
-    # print data
+    print(data)
     return data
 
 def save(projects, path):
     with open(path, 'w') as csvfile:
         writer = csv.writer(csvfile)
 
-        writer.writerow(('Вакансия', 'Зарплата', 'Тип'))
+        writer.writerow(('Объявление', 'Цена'))
 
         writer.writerows(
             # ".encode('utf-8')" нужен для правильной интерпретации unicode
             (project['title'],
              project['price'],
-             project['type'],
             ) for project in projects
         )
 
